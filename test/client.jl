@@ -4,6 +4,7 @@ using Sockets
 using JSON
 using Test
 using URIs
+import SimpleBufferStream
 
 status(r) = r.status
 @testset "Custom HTTP Stack" begin
@@ -83,6 +84,22 @@ end
             x["headers"]["Host"] == y["headers"]["Host"] &&
             x["headers"]["User-Agent"] == y["headers"]["User-Agent"]
         end
+
+        io = SimpleBufferStream.BufferStream()
+        r = HTTP.get("$sch://httpbin.org/stream/100"; response_stream=io)
+        @test status(r) == 200
+
+        b = [JSON.parse(l) for l in split(String(read(io)), '\n')]
+        @test all(zip(a, b)) do (x, y)
+            x["args"] == y["args"] &&
+            x["id"] == y["id"] &&
+            x["url"] == y["url"] &&
+            x["origin"] == y["origin"] &&
+            x["headers"]["Content-Length"] == y["headers"]["Content-Length"] &&
+            x["headers"]["Host"] == y["headers"]["Host"] &&
+            x["headers"]["User-Agent"] == y["headers"]["User-Agent"]
+        end
+
     end
 
     @testset "Client Body Posting - Vector{UTF8}, String, IOStream, IOBuffer, BufferStream" begin
