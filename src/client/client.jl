@@ -207,6 +207,23 @@ function Client(cs::ClientSettings)
             aws_retry_strategy_release(x.retry_strategy)
             x.retry_strategy = C_NULL
         end
+        if x.settings.bootstrap != C_NULL
+            aws_client_bootstrap_release(x.settings.bootstrap)
+            x.settings.bootstrap = C_NULL
+        end
+        if x.settings.resolver != C_NULL
+            aws_host_resolver_release(x.settings.resolver)
+            x.settings.resolver = C_NULL
+        end
+        if x.settings.event_loop_group != C_NULL
+            aws_event_loop_group_release(x.settings.event_loop_group)
+            aws_thread_join_all_managed()
+            x.settings.event_loop_group = C_NULL
+        end
+        if x.settings.allocator != C_NULL
+            aws_mem_tracer_destroy(x.settings.allocator)
+            x.settings.allocator = C_NULL
+        end
     end
     return client
 end

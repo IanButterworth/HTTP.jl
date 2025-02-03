@@ -73,6 +73,9 @@ function __init__()
     LOGGER_OPTIONS[] = aws_logger_standard_options(aws_log_level(3), C_NULL, Ptr{Libc.FILE}(LOGGER_FILE_REF[].ptr))
     @assert aws_logger_init_standard(LOGGER[], allocator, LOGGER_OPTIONS) == 0
     aws_logger_set(LOGGER[])
+    Base.atexit() do
+        aws_logger_clean_up(LOGGER[])
+    end
     # intialize c functions
     on_acquired[] = @cfunction(c_on_acquired, Cvoid, (Ptr{Cvoid}, Cint, Ptr{aws_retry_token}, Ptr{Cvoid}))
     # on_shutdown[] = @cfunction(c_on_shutdown, Cvoid, (Ptr{Cvoid}, Cint, Ptr{Cvoid}))
